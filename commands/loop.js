@@ -6,6 +6,13 @@ module.exports.callback = async ({ client, message }) => {
 			'Please join a voice channel to use this command.',
 		);
 	}
+	
+	// Make sure they are in the same voice channel
+	if (channel.id !== message.guild.me.voice.channel.id) {
+		return message.reply(
+			'Please join the same voice channel as me to use this command.',
+		);	
+	}
 
 	// Get the server queue
 	const serverQueue = client.queue.get(message.guild.id);
