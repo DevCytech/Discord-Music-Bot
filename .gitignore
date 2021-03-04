@@ -1,0 +1,48 @@
+# Modules
+node_modules/
+jspm_packages/
+.npm
+
+# Linux control
+.tgz
+
+# Yarn
+.yarn-integrity
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Environment
+.env
+.env.test
+.env.local
+
+# Logs & Reports
+*.log
+*.logs
+logs/
+npm-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+.vscode
+
+# Win 10 extentions
+.ini
+*.ini
+
+# Cache
+.cache
+.parcel-cache
+
+# TypeScript cache
+*.tsbuildinfo
+
+# ESlint cache
+.eslintcache
+
+# intellij
+.idea/
