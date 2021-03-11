@@ -1,5 +1,7 @@
 const ytdl = require('ytdl-core');
 const { client } = require('../index');
+const { SOUNDCLOUD_ID } = process.env;
+const scdl = require("soundcloud-downloader").default;
 
 module.exports.play = async (queue) => {
 	const song = queue.songs[0];
@@ -14,8 +16,9 @@ module.exports.play = async (queue) => {
 	}
 
 	// Setup stream
-	let stream = null;
+	let stream = null, streamType = 'opus';
 	if (song.url.includes('youtube.com')) {
+		// Manage YouTube player
 		stream = await ytdl(song.url);
 		stream.on('error', (err) => {
 			queue.songs.shift();
@@ -24,6 +27,13 @@ module.exports.play = async (queue) => {
 				`An unexpected error has occurred.\nPossible type \`${err}\``,
 			);
 		});
+	} else if (song.url.includes('soundcloud.com')) {
+		// Manage sound cloud player	
+		stream = await scdl.downloadFormat(song.url, scdl.FORMATS.OPUS, SOUNDCLOUD_ID).catch(console.error);
+		if (!stream) {
+			stream = scdl.downloadFormat(song.url, scdl.FORMATS.MP3, SOUNDCLOUD_ID).catch(console.error);
+			streamType = 'unknown';
+		}
 	}
 
 	// Delete queue on disconnection
@@ -37,7 +47,7 @@ module.exports.play = async (queue) => {
 			ytdl(song.url, {
 				quality: 'highestaudio',
 				highWaterMark: 1 << 25,
-				type: 'opus',
+				type: streamType,
 			}),
 		)
 		.on('finish', () => {
