@@ -1,10 +1,10 @@
-const {MessageEmbed} = require('discord.js');
+const { MessageEmbed } = require('discord.js');
 
-module.exports.callback = async ({client, message}) => {
+module.exports.callback = async ({ client, message }) => {
 	const permissions = message.channel.permissionsFor(message.client.user);
 	if (permissions.has(['MANAGE_MESSAGES', 'ADD_REACTIONS'])) {
 		return message.reply(
-			'I am missing permission to manage messages or add reactions.'
+			'I am missing permission to manage messages or add reactions.',
 		);
 	}
 
@@ -15,7 +15,7 @@ module.exports.callback = async ({client, message}) => {
 		k = 10;
 
 	const e = new MessageEmbed()
-		.setTiitle(`{message.guild.name} Queue`)
+		.setTitle(`${message.guild.name} Queue`)
 		.setColor('BLUE')
 		.addField('Now Playing', serverQueue.textChannel, true)
 		.addField('Text Channel', serverQueue.textChannel, true)
@@ -23,23 +23,24 @@ module.exports.callback = async ({client, message}) => {
 		.setFooter(`Current music volume is ${serverQueue.volume}`);
 
 	const embeds = [];
-	for (let i = 0; i < queue.length; i += 10) {
-		const current = queue.slice(i, k);
+	for (let i = 0; i < serverQueue.length; i += 10) {
+		const current = serverQueue.slice(i, k);
 		let j = 1;
 		k += 10;
 
 		const tracks = current
 			.map(
-				(track) => `**\`${++j}\`** | [\`${track.title}\`](${track.url})`
+				(track) =>
+					`**\`${++j}\`** | [\`${track.title}\`](${track.url})`,
 			)
 			.join('\n');
-		emebds.push(e.setDescription(info));
+		embeds.push(e.setDescription(tracks));
 	}
 
 	// Send embed
 	const queueEmbed = await message.channel.send(
 		`**\`${currentPage + 1}\`**/**${embeds.length}**`,
-		embeds[currentPage]
+		embeds[currentPage],
 	);
 
 	try {
@@ -54,16 +55,18 @@ module.exports.callback = async ({client, message}) => {
 	const filter = (reaction, user) =>
 		['⬅️', '🛑', '➡️'].includes(reaction.emoji.name) &&
 		message.author.id === user.id;
-	const collector = queueEmbed.createReactionCollector(filter, {time: 60000});
+	const collector = queueEmbed.createReactionCollector(filter, {
+		time: 60000,
+	});
 
-	collector.on('collect', async (reaction, user) => {
+	collector.on('collect', async (reaction) => {
 		try {
 			if (reaction.emoji.name === '➡️') {
 				if (currentPage < embeds.length - 1) {
 					currentPage++;
 					queueEmbed.edit(
 						`**\`${currentPage + 1}\`**/**${embeds.length}**`,
-						embeds[currentPage]
+						embeds[currentPage],
 					);
 				}
 			} else if (reaction.emoji.name === '⬅️') {
@@ -71,7 +74,7 @@ module.exports.callback = async ({client, message}) => {
 					--currentPage;
 					queueEmbed.edit(
 						`**\`${currentPage + 1}\`**/**${embeds.length}**`,
-						embeds[currentPage]
+						embeds[currentPage],
 					);
 				}
 			} else {

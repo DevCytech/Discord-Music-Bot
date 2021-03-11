@@ -6,36 +6,32 @@ module.exports.callback = async ({ client, message }) => {
 			'Please join a voice channel to use this command.',
 		);
 	}
-	
+
 	// Make sure bot is in a voice channel
 	if (!message.guild.me.voice.channel) {
-		return message.reply(
-			'I am not currently playing any music.',
-		)
+		return message.reply('I am not currently playing any music.');
 	}
-	
+
 	// Make sure they are in the same voice channel
 	if (channel.id !== message.guild.me.voice.channel.id) {
 		return message.reply(
 			'Please join the same voice channel as me to use this command.',
-		);	
+		);
 	}
 
 	// Get the server queue
 	const serverQueue = client.queue.get(message.guild.id);
 	if (!serverQueue) return message.reply('There is nothing playing.');
-	
+
 	// Make bot leave voice channel
 	try {
-            await message.guild.me.voice.channel.leave();
-        } catch (error) {
-            await message.guild.me.voice.kick(message.guild.me.id);
-            return message.reply("Trying To Leave The Voice Channel...");
-        }
+		await message.guild.me.voice.channel.leave();
+	} catch (error) {
+		await message.guild.me.voice.kick(message.guild.me.id);
+		return message.reply('Trying To Leave The Voice Channel...');
+	}
 
-	return message.reply(
-		'I have left the voice channel.',
-	);
+	return message.reply('I have left the voice channel.');
 };
 
 module.exports.config = {
