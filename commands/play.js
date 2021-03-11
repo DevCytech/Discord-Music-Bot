@@ -1,6 +1,8 @@
+const path = require('path');
 const yts = require('yt-search');
 const ytdl = require('ytdl-core');
 const { Util } = require('discord.js');
+const tempFilesPath = path.join(__dirname, 'tempFiles');
 const scdl = require("soundcloud-downloader").default;
 
 module.exports.callback = async ({ client, args, message }) => {
@@ -74,6 +76,20 @@ module.exports.callback = async ({ client, args, message }) => {
                     duration: Math.ceil(songInfo.duration / 1000),
                     req: message.author,
                 };
+	} else if (message.attachments.first()) {
+		// Play Attached Files
+		const file = message.attachments.first();
+		if (!file.filename.endsWith('mp3')) {
+			return message.reply('I am only accepting mp3 files.')
+		}
+		
+		// Get File Informaiton
+		const FileName = file.filename.replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g,'');
+		const FilePath = path.resolve(tempFilesPath, FileName);
+		const title = fileName.slice(0, fileName.lastIndexOf('.'));
+		
+		/* INCOMPLETE */
+		
 	} else {
 		// Search for songs via YouTube if song was not a link.
 		const searchResult = await yts.search(search).catch(console.error);
