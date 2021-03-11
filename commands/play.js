@@ -1,115 +1,13 @@
 const path = require('path');
 const yts = require('yt-search');
 const ytdl = require('ytdl-core');
+const request = require('request');
 const { Util } = require('discord.js');
-const tempFilesPath = path.join(__dirname, 'tempFiles');
-const scdl = require("soundcloud-downloader").default;
+const TempFilesPath = path.join('./temp', '');
+const scdl = require('soundcloud-downloader').default;
+const { existsSync, createWriteStream } = require('fs');
 
-module.exports.callback = async ({ client, args, message }) => {
-	// Check voice channel
-	const channel = message.member.voice.channel;
-	if (!channel) {
-		return message.reply(
-			'Please join a voice channel to use this command.',
-		);
-	}
-
-	// Check Permissions
-	const permissions = channel.permissionsFor(message.client.user);
-	if (!permissions.has('CONNECT')) {
-		return message.reply('I am unable to connect to your voice channel.');
-	}
-	if (!permissions.has('SPEAK')) {
-		return message.reply('I am unable to speak in your voice channel.');
-	}
-	// Search
-	const search = args.join(' ');
-	if (!search) {
-		return message.reply('Please provide a song you would like to play');
-	}
-	const url = args[0] ? args[0].replace(/<(.+)>/g, '$1') : '';
-	const serverQueue = client.queue.get(message.guild.id);
-
-	// Get song info and song
-	let songInfo = null;
-	let song = null;
-
-	// Get song
-	// Check if it is a url
-	if (
-		url.match(
-			/^(https?:\/\/)?(www\.)?(m\.)?(youtube\.com|youtu\.?be)\/.+$/gi,
-		)
-	) {
-		// Manage youtube links
-		songInfo = await ytdl.getInfo(url).catch(console.error);
-		if (!songInfo) {
-			return message.reply('I was unable to find this song on YouTube.');
-		}
-
-		song = {
-			id: songInfo.videoDetails.videoId,
-			title: songInfo.videoDetails.title,
-			url: songInfo.videoDetails.video_url,
-			img:
-				songInfo.player_response.videoDetails.thumbnail.thumbnails[0]
-					.url,
-			duration: songInfo.videoDetails.lengthSeconds,
-			ago: songInfo.videoDetails.publishDate,
-			views: String(songInfo.videoDetails.viewCount).padStart(10, ' '),
-			req: message.author,
-		};
-	} else if (url.match(/^https?:\/\/(soundcloud\.com)\/(.*)$/gi)) {
-		// Manage soundcloud links
-		songInfo = await scdl.getInfo(url).catch(console.error);
-		if (!songInfo) {
-			return message.reply('I was unable to find information on this song on sound cloud.')
-		}
-		
-		song = {
-                    id: songInfo.permalink,
-                    title: songInfo.title,
-                    url: songInfo.permalink_url,
-                    img: songInfo.artwork_url,
-                    ago: songInfo.last_modified,
-                    views: String(songInfo.playback_count).padStart(10, " "),
-                    duration: Math.ceil(songInfo.duration / 1000),
-                    req: message.author,
-                };
-	} else if (message.attachments.first()) {
-		// Play Attached Files
-		const file = message.attachments.first();
-		if (!file.filename.endsWith('mp3')) {
-			return message.reply('I am only accepting mp3 files.')
-		}
-		
-		// Get File Informaiton
-		const FileName = file.filename.replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g,'');
-		const FilePath = path.resolve(tempFilesPath, FileName);
-		const title = fileName.slice(0, fileName.lastIndexOf('.'));
-		
-		/* INCOMPLETE */
-		
-	} else {
-		// Search for songs via YouTube if song was not a link.
-		const searchResult = await yts.search(search).catch(console.error);
-		if (!searchResult.videos.length) {
-			return message.reply('I was unable to find the song on youtube');
-		}
-
-		songInfo = searchResult.videos[0];
-		song = {
-			id: songInfo.videoId,
-			title: Util.escapeMarkdown(songInfo.title),
-			views: String(songInfo.views).padStart(10, ' '),
-			url: songInfo.url,
-			ago: songInfo.ago,
-			duration: songInfo.duration.toString(),
-			img: songInfo.image,
-			req: message.author,
-		};
-	}
-
+async function manageQueue(client, message, channel, serverQueue, song) {
 	// Add song to queue if queue is set
 	if (serverQueue) {
 		serverQueue.songs.push(song);
@@ -142,6 +40,201 @@ module.exports.callback = async ({ client, args, message }) => {
 	// Set queue
 	queueItem.connection = connection;
 	play(queueItem);
+}
+
+module.exports.callback = async ({ client, args, message }) => {
+	// Check voice channel
+	const channel = message.member.voice.channel;
+	if (!channel) {
+		return message.reply(
+			'Please join a voice channel to use this command.',
+		);
+	}
+
+	// Check Permissions
+	const permissions = channel.permissionsFor(message.client.user);
+	if (!permissions.has('CONNECT')) {
+		return message.reply('I am unable to connect to your voice channel.');
+	}
+	if (!permissions.has('SPEAK')) {
+		return message.reply('I am unable to speak in your voice channel.');
+	}
+
+	// Search
+	const file = message.attachments.first();
+	const search = args.join(' ');
+	if (!search && !file) {
+		return message.reply('Please provide a song you would like to play');
+	}
+	const url = args[0] ? args[0].replace(/<(.+)>/g, '$1') : '';
+	const serverQueue = client.queue.get(message.guild.id);
+
+	// Get song info and song
+	let songInfo = null;
+	let song = null;
+
+	// Get song
+	if (file) {
+		// Manage files
+		if (!file.name.endsWith('.mp3')) {
+			return message.channel.send('I only support mp3 files sorry!!');
+		}
+
+		// Get Song Info
+		const FileName = file.name.replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g, '');
+		const FilePath = path.resolve(TempFilesPath, FileName);
+		const Title = FileName.slice(0, FileName.lastIndexOf(' '));
+
+		// Download file
+		if (!existsSync(FilePath)) {
+			const stream = request.get(file.url);
+
+			stream.on('error', (err) => {
+				console.error(err);
+				return message.channel.send(
+					'I was unable to get file to play.',
+				);
+			});
+
+			stream.pipe(createWriteStream(FilePath));
+			stream.on('complete', () => {
+				console.log('Finished writing...');
+				song = {
+					id: file.url,
+					isFile: true,
+					url: file.url,
+					file: FilePath,
+					title: Title,
+					req: message.author,
+				};
+				manageQueue(client, message, channel, serverQueue, song);
+			});
+			return;
+		}
+
+		song = {
+			id: file.url,
+			isFile: true,
+			url: file.url,
+			file: FilePath,
+			title: Title,
+			req: message.author,
+		};
+	} else if (
+		url.match(/^https?:\/\/(cdn.discordapp\.com)\/(.*)$/gi) ||
+		url.match(/^https?:\/\/(discord\.com)\/(.*)$/gi)
+	) {
+		if (url.endsWith('.mp3')) {
+			const name = url.split('/')[url.split('/').length - 1];
+
+			// Get Song Info
+			const FileName = name.replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g, '');
+			const FilePath = path.resolve(TempFilesPath, FileName);
+			const Title = FileName.slice(0, FileName.lastIndexOf('.'));
+
+			// Download file
+			if (!existsSync(FilePath)) {
+				const stream = request.get(file.url);
+
+				stream.on('error', (err) => {
+					console.error(err);
+					return message.channel.send(
+						'I was unable to get file to play.',
+					);
+				});
+
+				stream.pipe(createWriteStream(FilePath));
+				stream.on('complete', () => {
+					console.log('Finished writing...');
+					song = {
+						id: url,
+						isFile: true,
+						url: url,
+						file: FilePath,
+						title: Title,
+						req: message.author,
+					};
+					manageQueue(client, message, channel, serverQueue, song);
+				});
+				return;
+			}
+
+			song = {
+				id: url,
+				isFile: true,
+				url: url,
+				file: FilePath,
+				title: Title,
+				req: message.author,
+			};
+		} else {
+			// Get message and if there are no attachments then return
+		}
+	} else if (
+		url.match(
+			/^(https?:\/\/)?(www\.)?(m\.)?(youtube\.com|youtu\.?be)\/.+$/gi,
+		)
+	) {
+		// Manage youtube links
+		songInfo = await ytdl.getInfo(url).catch(console.error);
+		if (!songInfo) {
+			return message.reply('I was unable to find this song on YouTube.');
+		}
+
+		song = {
+			id: songInfo.videoDetails.videoId,
+			title: songInfo.videoDetails.title,
+			url: songInfo.videoDetails.video_url,
+			img:
+				songInfo.player_response.videoDetails.thumbnail.thumbnails[0]
+					.url,
+			duration: songInfo.videoDetails.lengthSeconds,
+			ago: songInfo.videoDetails.publishDate,
+			views: String(songInfo.videoDetails.viewCount).padStart(10, ' '),
+			req: message.author,
+		};
+	} else if (url.match(/^https?:\/\/(soundcloud\.com)\/(.*)$/gi)) {
+		// Manage soundcloud links
+		songInfo = await scdl.getInfo(url).catch(console.error);
+		console.log(songInfo);
+		if (!songInfo) {
+			return message.reply(
+				'I was unable to find information on this song on sound cloud.',
+			);
+		}
+
+		song = {
+			id: songInfo.permalink,
+			title: songInfo.title,
+			url: songInfo.permalink_url,
+			img: songInfo.artwork_url,
+			ago: songInfo.last_modified,
+			views: String(songInfo.playback_count).padStart(10, ' '),
+			duration: Math.ceil(songInfo.duration / 1000),
+			req: message.author,
+		};
+	} else {
+		// Search for songs via YouTube if song was not a link.
+		const searchResult = await yts.search(search).catch(console.error);
+		if (!searchResult.videos.length) {
+			return message.reply('I was unable to find the song on youtube');
+		}
+
+		songInfo = searchResult.videos[0];
+		song = {
+			id: songInfo.videoId,
+			title: Util.escapeMarkdown(songInfo.title),
+			views: String(songInfo.views).padStart(10, ' '),
+			url: songInfo.url,
+			ago: songInfo.ago,
+			duration: songInfo.duration.toString(),
+			img: songInfo.image,
+			req: message.author,
+		};
+	}
+
+	// Setup Queue
+	await manageQueue(client, message, channel, serverQueue, song);
 };
 
 module.exports.config = {
