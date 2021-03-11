@@ -1,6 +1,7 @@
 const yts = require('yt-search');
 const ytdl = require('ytdl-core');
 const { Util } = require('discord.js');
+const scdl = require("soundcloud-downloader").default;
 
 module.exports.callback = async ({ client, args, message }) => {
 	// Check voice channel
@@ -38,7 +39,7 @@ module.exports.callback = async ({ client, args, message }) => {
 			/^(https?:\/\/)?(www\.)?(m\.)?(youtube\.com|youtu\.?be)\/.+$/gi,
 		)
 	) {
-		// Get song info
+		// Manage youtube links
 		songInfo = await ytdl.getInfo(url).catch(console.error);
 		if (!songInfo) {
 			return message.reply('I was unable to find this song on YouTube.');
@@ -56,7 +57,25 @@ module.exports.callback = async ({ client, args, message }) => {
 			views: String(songInfo.videoDetails.viewCount).padStart(10, ' '),
 			req: message.author,
 		};
+	} else if (url.match(/^https?:\/\/(soundcloud\.com)\/(.*)$/gi)) {
+		// Manage soundcloud links
+		songInfo = await scdl.getInfo(url).catch(console.error);
+		if (!songInfo) {
+			return message.reply('I was unable to find information on this song on sound cloud.')
+		}
+		
+		song = {
+                    id: songInfo.permalink,
+                    title: songInfo.title,
+                    url: songInfo.permalink_url,
+                    img: songInfo.artwork_url,
+                    ago: songInfo.last_modified,
+                    views: String(songInfo.playback_count).padStart(10, " "),
+                    duration: Math.ceil(songInfo.duration / 1000),
+                    req: message.author,
+                };
 	} else {
+		// Search for songs via YouTube if song was not a link.
 		const searchResult = await yts.search(search).catch(console.error);
 		if (!searchResult.videos.length) {
 			return message.reply('I was unable to find the song on youtube');
