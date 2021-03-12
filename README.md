@@ -9,5 +9,19 @@ I have seen many Discord Music Bots on GitHub but most use a fancy package like 
 4. Install dependencies by running `npm install`
 5. To start the bot run `node index.js` in a command handler
 
+## Supported Sources
+- YouTube
+- Soundcloud
+- mp3 - Restricted to discord
+
+## Potential Support
+- Spotify
+- Deezer
+- Twitch
+- Vimeo
+- Apple Music
+- Bandcamp
+ 
+
 ## Author
 **Discord Music Bot** DevCytech
