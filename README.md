@@ -15,13 +15,25 @@ I have seen many Discord Music Bots on GitHub but most use a fancy package like 
 - mp3 - Restricted to discord
 
 ## Potential Support
+- YouTube Playlists
 - Spotify
 - Deezer
 - Twitch
 - Vimeo
 - Apple Music
 - Bandcamp
- 
+
+## In Development Features
+- Filters
+- Shuffle
+- Volume Control
+- Lyrics
+- Now Playing
+- Moving Songs
+- Skipping Songs
+- Some More Not Listed...
+
+
 
 ## Author
 **Discord Music Bot** DevCytech
