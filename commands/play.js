@@ -158,7 +158,7 @@ module.exports.callback = async ({ client, args, message }) => {
 				});
 				return;
 			}
-
+			
 			song = {
 				id: url,
 				isFile: true,
@@ -169,6 +169,71 @@ module.exports.callback = async ({ client, args, message }) => {
 			};
 		} else {
 			// Get message and if there are no attachments then return
+			const channelID = url.split('@')[1].split('/')[1];
+			const messageID = url.split('@')[1].split('/')[2];
+			
+			if (!channelID || !messageID) {
+				return message.reply('I could not find a channel or message id in the link.');
+			}
+			
+			// Get Channel
+			const channel = message.guild.channels.cache.get(channelID);
+			if (!channel) {
+				return message.reply('I was unable to find a channel using your link.')
+			}
+			
+			// Get message
+			const msg = channel.messages.cache.get(messageID).fetch();
+			if (!msg) {
+				return message.reply('I was unable to find a message using your link.')
+			}
+			
+			// If message has an attachement
+			const MSGFile = msg.attachments.first();
+			if (!MSGFile || !MSGFile.name.endsWith('.mp3') {
+				return message.reply('I could not find a supported file attachment on the message link.')
+			}
+			
+			// Get Song Info
+			const FileName = MSGFile.name.replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g, '');
+			const FilePath = path.resolve(TempFilesPath, FileName);
+			const Title = FileName.slice(0, FileName.lastIndexOf(' '));
+
+			// Download file
+			if (!existsSync(FilePath)) {
+				const stream = request.get(MSGFile.url);
+
+				stream.on('error', (err) => {
+					console.error(err);
+					return message.channel.send(
+						'I was unable to get file to play.',
+					);
+				});
+
+				stream.pipe(createWriteStream(FilePath));
+				stream.on('complete', () => {
+					console.log('Finished writing...');
+					song = {
+						id: MSGFile.url,
+						isFile: true,
+						url: MSGFile.url,
+						file: FilePath,
+						title: Title,
+						req: message.author,
+					};
+					manageQueue(client, message, channel, serverQueue, song);
+				});
+				return;
+			}
+
+			song = {
+				id: MSGFile.url,
+				isFile: true,
+				url: MSGFile.url,
+				file: FilePath,
+				title: Title,
+				req: message.author,
+			};
 		}
 	} else if (
 		url.match(
