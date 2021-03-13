@@ -12,7 +12,7 @@ async function manageQueue(client, message, channel, serverQueue, song) {
 	if (serverQueue) {
 		serverQueue.songs.push(song);
 		return message.reply(
-			`[${song.title}](${song.url}) has been added to the queue. *requested by ${song.req}*`,
+			`\`${song.title}\` has been added to the queue. *Requested by ${song.req}*`,
 		);
 	}
 
@@ -51,23 +51,29 @@ module.exports.callback = async ({ client, args, message }) => {
 		);
 	}
 
+	// Get server queue
+	const serverQueue = client.queue.get(message.guild.id);
+
 	// Check Permissions
-	const permissions = channel.permissionsFor(message.client.user);
-	if (!permissions.has('CONNECT')) {
-		return message.reply('I am unable to connect to your voice channel.');
-	}
-	if (!permissions.has('SPEAK')) {
-		return message.reply('I am unable to speak in your voice channel.');
+	if (!serverQueue || !serverQueue.voiceChannel) {
+		const permissions = channel.permissionsFor(message.client.user);
+		if (!permissions.has('CONNECT')) {
+			return message.reply(
+				'I am unable to connect to your voice channel.',
+			);
+		}
+		if (!permissions.has('SPEAK')) {
+			return message.reply('I am unable to speak in your voice channel.');
+		}
 	}
 
-	// Search
+	// Search, File, and URL
 	const file = message.attachments.first();
 	const search = args.join(' ');
 	if (!search && !file) {
 		return message.reply('Please provide a song you would like to play');
 	}
 	const url = args[0] ? args[0].replace(/<(.+)>/g, '$1') : '';
-	const serverQueue = client.queue.get(message.guild.id);
 
 	// Get song info and song
 	let songInfo = null;
@@ -81,9 +87,9 @@ module.exports.callback = async ({ client, args, message }) => {
 		}
 
 		// Get Song Info
-		const FileName = file.name.replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g, '');
+		const FileName = file.name.replace(/[&/\\#,+()$~%'":*?<>{}|_-]/g, '');
 		const FilePath = path.resolve(TempFilesPath, FileName);
-		const Title = FileName.slice(0, FileName.lastIndexOf(' '));
+		const Title = FileName.slice(0, FileName.lastIndexOf('.'));
 
 		// Download file
 		if (!existsSync(FilePath)) {
@@ -98,7 +104,6 @@ module.exports.callback = async ({ client, args, message }) => {
 
 			stream.pipe(createWriteStream(FilePath));
 			stream.on('complete', () => {
-				console.log('Finished writing...');
 				song = {
 					id: file.url,
 					isFile: true,
@@ -128,7 +133,7 @@ module.exports.callback = async ({ client, args, message }) => {
 			const name = url.split('/')[url.split('/').length - 1];
 
 			// Get Song Info
-			const FileName = name.replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g, '');
+			const FileName = name.replace(/[&/\\#,+()$~%'":*?<>{}|_-]/g, '');
 			const FilePath = path.resolve(TempFilesPath, FileName);
 			const Title = FileName.slice(0, FileName.lastIndexOf('.'));
 
@@ -145,7 +150,6 @@ module.exports.callback = async ({ client, args, message }) => {
 
 				stream.pipe(createWriteStream(FilePath));
 				stream.on('complete', () => {
-					console.log('Finished writing...');
 					song = {
 						id: url,
 						isFile: true,
@@ -158,7 +162,7 @@ module.exports.callback = async ({ client, args, message }) => {
 				});
 				return;
 			}
-			
+
 			song = {
 				id: url,
 				isFile: true,
@@ -169,35 +173,46 @@ module.exports.callback = async ({ client, args, message }) => {
 			};
 		} else {
 			// Get message and if there are no attachments then return
-			const channelID = url.split('@')[1].split('/')[1];
-			const messageID = url.split('@')[1].split('/')[2];
-			
+			const channelID = url.split('/channels/')[1].split('/')[1];
+			const messageID = url.split('/channels/')[1].split('/')[2];
+
 			if (!channelID || !messageID) {
-				return message.reply('I could not find a channel or message id in the link.');
+				return message.reply(
+					'I could not find a channel or message id in the link.',
+				);
 			}
-			
+
 			// Get Channel
-			const channel = message.guild.channels.cache.get(channelID);
-			if (!channel) {
-				return message.reply('I was unable to find a channel using your link.')
+			const MSGChannel = message.guild.channels.cache.get(channelID);
+			if (!MSGChannel) {
+				return message.reply(
+					'I was unable to find a channel using your link.',
+				);
 			}
-			
+
 			// Get message
-			const msg = channel.messages.cache.get(messageID).fetch();
+			const msg = await MSGChannel.messages.fetch(messageID);
 			if (!msg) {
-				return message.reply('I was unable to find a message using your link.')
+				return message.reply(
+					'I was unable to find a message using your link.',
+				);
 			}
-			
+
 			// If message has an attachement
 			const MSGFile = msg.attachments.first();
-			if (!MSGFile || !MSGFile.name.endsWith('.mp3') {
-				return message.reply('I could not find a supported file attachment on the message link.')
+			if (!MSGFile || !MSGFile.name.endsWith('.mp3')) {
+				return message.reply(
+					'I could not find a supported file attachment on the message link.',
+				);
 			}
-			
+
 			// Get Song Info
-			const FileName = MSGFile.name.replace(/[&\/\\#,+()$~%'":*?<>{}|_-]/g, '');
+			const FileName = MSGFile.name.replace(
+				/[&/\\#,+()$~%'":*?<>{}|_-]/g,
+				'',
+			);
 			const FilePath = path.resolve(TempFilesPath, FileName);
-			const Title = FileName.slice(0, FileName.lastIndexOf(' '));
+			const Title = FileName.slice(0, FileName.lastIndexOf('.'));
 
 			// Download file
 			if (!existsSync(FilePath)) {
@@ -212,7 +227,6 @@ module.exports.callback = async ({ client, args, message }) => {
 
 				stream.pipe(createWriteStream(FilePath));
 				stream.on('complete', () => {
-					console.log('Finished writing...');
 					song = {
 						id: MSGFile.url,
 						isFile: true,
@@ -238,7 +252,8 @@ module.exports.callback = async ({ client, args, message }) => {
 	} else if (
 		url.match(
 			/^(https?:\/\/)?(www\.)?(m\.)?(youtube\.com|youtu\.?be)\/.+$/gi,
-		)
+		) &&
+		!/^.*(youtu.be\/|list=)([^#&?]*).*/gi.test(url)
 	) {
 		// Manage youtube links
 		songInfo = await ytdl.getInfo(url).catch(console.error);
@@ -258,6 +273,15 @@ module.exports.callback = async ({ client, args, message }) => {
 			views: String(songInfo.videoDetails.viewCount).padStart(10, ' '),
 			req: message.author,
 		};
+	} else if (
+		url.match(
+			/^(https?:\/\/)?(www\.)?(m\.)?(youtube\.com|youtu\.?be)\/.+$/gi,
+		) &&
+		/^.*(youtu.be\/|list=)([^#&?]*).*/gi.test(url)
+	) {
+		return message.reply(
+			'Please use `!play-playlist <playlist link>` to play a playlist.',
+		);
 	} else if (url.match(/^https?:\/\/(soundcloud\.com)\/(.*)$/gi)) {
 		// Manage soundcloud links
 		songInfo = await scdl.getInfo(url).catch(console.error);
