@@ -8,7 +8,6 @@ module.exports.fetchFiles = (location, ptn) => {
 		throw new Error(
 			'Your path or pattern is an incorrect type. Please make sure you are sending a string.',
 		);
-		return null;
 	}
 
 	// File only function
@@ -45,6 +44,5 @@ module.exports.fetchFiles = (location, ptn) => {
 		throw new Error(
 			`An error has occurred getting command files. Error: ${err}`,
 		);
-		return null;
 	}
 };
