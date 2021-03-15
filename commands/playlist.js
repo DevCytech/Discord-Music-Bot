@@ -127,13 +127,12 @@ module.exports.callback = async ({ client, args, message }) => {
 		message.channel.send(
 			`Searching for songs... This may take a moment. Expected time... ${playlist.tracks.items.length} seconds.`,
 		);
-		let x = 0;
+		
 		for (const song of playlist.tracks.items) {
 			const results = await yts.search(
 				`${song.track.artists[0].name} - ${song.track.name}`,
 			);
 			if (!results || results.length < 1) {
-				x++;
 				continue;
 			}
 			tracks.push(results.all[0]);
