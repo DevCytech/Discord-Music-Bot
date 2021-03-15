@@ -7,7 +7,7 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
 		if (newMember.guild.me.voice.channelID) {
 			return newMember.guild.me.voice.channel.leave();
 		} else {
-			return;
+			return null;
 		}
 	}
 
