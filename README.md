@@ -1,5 +1,7 @@
 # Discord Music Bot (In Development!!)
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/38993b63ff194025953082e584613cf9)](https://app.codacy.com/gh/DevCytech/Discord-Music-Bot?utm_source=github.com&utm_medium=referral&utm_content=DevCytech/Discord-Music-Bot&utm_campaign=Badge_Grade_Settings)
+
 I have seen many Discord Music Bots on GitHub but most use a fancy package like discord-player, andesite, or erela.js and a few others. For this project I wanted to make a Discord Music bot based around the built in Dispatcher in discord.js. This project uses FFMPEG and opusscript with the discord.js dispatcher. This bot currently only plays from YouTube. Future Versions may include more audio sources.
 
 ## How to use this project
