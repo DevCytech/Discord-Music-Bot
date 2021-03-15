@@ -1,0 +1,31 @@
+module.exports.callback = async ({ client, message }) => {
+	// Get the server queue
+	const serverQueue = client.queue.get(message.guild.id);
+
+	// Check queue
+	if (!serverQueue) return message.reply('There is nothing playing.');
+
+	// Place tracks
+	const nowPlaying = serverQueue.songs[0];
+	const next = serverQueue.songs.slice(1, 11);
+	const playingNext = [];
+
+	// Sort out tracks
+	let i = 1;
+	for (const track of next) {
+		playingNext.push(`\`${i++})\` ${track.title}`);
+	}
+
+	// Create queue message
+	const queue = `**Now Playing**: ${
+		nowPlaying.title
+	} \n**Playing Next**: *(10/${next.length})*\n${playingNext.join('\n')}`;
+
+	return message.channel.send(queue);
+};
+
+module.exports.config = {
+	name: 'queue',
+	aliases: ['q'],
+	category: 'music',
+};
