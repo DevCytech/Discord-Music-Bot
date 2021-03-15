@@ -1,18 +1,21 @@
 const ytpl = require('ytpl');
 const yts = require('yt-search');
 const { Util } = require('discord.js');
+const { getData } = require('spotify-url-info');
 
 async function manageQueue(client, message, channel, video) {
 	const serverQueue = client.queue.get(message.guild.id);
 
 	// Create queue track
 	const track = {
-		id: video.id,
+		id: video.id ? video.id : video.videoId,
 		title: Util.escapeMarkdown(video.title),
 		views: video.views ? video.views : '-',
 		ago: video.ago ? video.ago : '-',
 		duration: video.duration,
-		url: `https://www.youtube.com/watch?v=${video.id}`,
+		url: `https://www.youtube.com/watch?v=${
+			video.id ? video.id : video.videoId
+		}`,
 		img: video.thumbnail,
 		req: message.author,
 	};
@@ -24,6 +27,7 @@ async function manageQueue(client, message, channel, video) {
 			textChannel: message.channel,
 			voiceChannel: channel,
 			connection: null,
+			dispatcher: null,
 			songs: [track],
 			volume: 50,
 			playing: true,
@@ -86,7 +90,9 @@ module.exports.callback = async ({ client, args, message }) => {
 	// Get Song
 	if (/^.*(youtu.be\/|list=)([^#&?]*).*/gi.test(url)) {
 		// Manage playlist links
-		const playlist = await ytpl(url.split('list=')[1].split('&index=')[0]);
+		const playlist = await ytpl(
+			url.split('list=')[1].split('&index=')[0],
+		).catch();
 		if (!playlist) {
 			return message.reply('I could not find a playlist with that url');
 		}
@@ -102,6 +108,43 @@ module.exports.callback = async ({ client, args, message }) => {
 		// Send confirmation
 		return message.channel.send(
 			`Successfully added ${videos[0].title} to queue!`,
+		);
+	} else if (
+		url.match(
+			/(?:https:\/\/open\.spotify\.com\/|spotify:)(?:.+)?(playlist)[/:]([A-Za-z0-9]+)/,
+		)
+	) {
+		// Manage spotify playlists
+		const playlist = await getData(url).catch();
+		if (!playlist) {
+			return message.reply(
+				'I was unable to find the playlist with that link.',
+			);
+		}
+
+		// Handle tracks
+		const tracks = [];
+		message.channel.send(
+			`Searching for songs... This may take a moment. Expected time... ${playlist.tracks.items.length} seconds.`,
+		);
+		let x = 0;
+		for (const song of playlist.tracks.items) {
+			const results = await yts.search(
+				`${song.track.artists[0].name} - ${song.track.name}`,
+			);
+			if (!results || results.length < 1) {
+				x++;
+				continue;
+			}
+			tracks.push(results.all[0]);
+		}
+
+		for (const track of tracks) {
+			await manageQueue(client, message, channel, track);
+		}
+
+		return message.channel.send(
+			`Successfully added \`${playlist.name}\` with ${tracks.length} songs to the queue.`,
 		);
 	} else {
 		// Search youtube playlists

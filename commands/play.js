@@ -3,6 +3,7 @@ const yts = require('yt-search');
 const ytdl = require('ytdl-core');
 const request = require('request');
 const { Util } = require('discord.js');
+const spotify = require('spotify-url-info');
 const TempFilesPath = path.join('./temp', '');
 const scdl = require('soundcloud-downloader').default;
 const { existsSync, createWriteStream } = require('fs');
@@ -21,6 +22,7 @@ async function manageQueue(client, message, channel, serverQueue, song) {
 		textChannel: message.channel,
 		voiceChannel: channel,
 		connection: null,
+		dispatcher: null,
 		songs: [song],
 		volume: 50,
 		playing: true,
@@ -302,6 +304,39 @@ module.exports.callback = async ({ client, args, message }) => {
 			duration: Math.ceil(songInfo.duration / 1000),
 			req: message.author,
 		};
+	} else if (
+		url.match(
+			/(?:https:\/\/open\.spotify\.com\/|spotify:)(?:.+)?(track)[/:]([A-Za-z0-9]+)/,
+		)
+	) {
+		// Manage Spotify Links
+		const tempSongInfo = await spotify.getPreview(url);
+		const searchResult = await yts.search(
+			`${tempSongInfo.artist} - ${tempSongInfo.title}`,
+		);
+		if (!searchResult.videos.length) {
+			return message.reply('I was unable to find the song');
+		}
+
+		songInfo = searchResult.videos[0];
+		song = {
+			id: songInfo.videoId,
+			title: Util.escapeMarkdown(songInfo.title),
+			views: String(songInfo.views).padStart(10, ' '),
+			url: songInfo.url,
+			ago: songInfo.ago,
+			duration: songInfo.duration.toString(),
+			img: songInfo.image,
+			req: message.author,
+		};
+	} else if (
+		url.match(
+			/(?:https:\/\/open\.spotify\.com\/|spotify:)(?:.+)?(playlist)[/:]([A-Za-z0-9]+)/,
+		)
+	) {
+		return message.reply(
+			'Please use `!play-playlist <playlist link>` with spotify playlist.',
+		);
 	} else {
 		// Search for songs via YouTube if song was not a link.
 		const searchResult = await yts.search(search).catch(console.error);
