@@ -15,7 +15,7 @@ module.exports.fetchFiles = (location, ptn) => {
 	function getFiles(path, pattern) {
 		// Variables
 		let results = [];
-		let res = readdirSync(path);
+		const res = readdirSync(path);
 
 		// Check each file
 		for (const item of res) {
