@@ -64,6 +64,7 @@ module.exports.play = async (queue) => {
 		if (queue.loop) queue.songs.push(shift);
 		this.play(queue);
 	});
+	queue.dispatcher = dispatcher;
 
 	// Set volume and send play message
 	dispatcher.setVolumeLogarithmic(queue.volume / 100);
