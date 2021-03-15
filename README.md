@@ -13,13 +13,14 @@ I have seen many Discord Music Bots on GitHub but most use a fancy package like 
 
 ## Supported Sources
 
--   YouTube
--   Soundcloud
+-   Spotify + Spotify Playlists
+-   YouTube + YouTube Playlists
+-   Soundcloud Tracks
 -   mp3 - Restricted to discord
 
 ## Potential Support
 
--   Spotify
+-   Spotify Albums  
 -   Deezer
 -   Twitch
 -   Vimeo
@@ -33,8 +34,7 @@ I have seen many Discord Music Bots on GitHub but most use a fancy package like 
 -   Volume Control
 -   Lyrics
 -   Now Playing
--   Queue
--   Skip || Skip to
+-   Skip to
 -   Queue Looping _(Allow the queue to repeat not just the track)_
 -   Previous Track _(Add the previous track to play next)_
 -   Shuffle
