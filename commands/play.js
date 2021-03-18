@@ -287,7 +287,6 @@ module.exports.callback = async ({ client, args, message }) => {
 	} else if (url.match(/^https?:\/\/(soundcloud\.com)\/(.*)$/gi)) {
 		// Manage soundcloud links
 		songInfo = await scdl.getInfo(url).catch(console.error);
-		console.log(songInfo);
 		if (!songInfo) {
 			return message.reply(
 				'I was unable to find information on this song on sound cloud.',
