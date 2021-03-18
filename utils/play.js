@@ -3,8 +3,7 @@ const { SOUNDCLOUD_ID } = process.env;
 const { client } = require('../index');
 const scdl = require('soundcloud-downloader').default;
 const { YouTubePlayer, ExternalPlayer } = require('./player');
-
-const nightcore = 'aresample=48000,asetrate=48000*1.15';
+const { nightcore } = require('./filters.json');
 
 module.exports.play = async (queue) => {
 	const song = queue.songs[0];
