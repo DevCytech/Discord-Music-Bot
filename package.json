@@ -25,6 +25,7 @@
 		"discord.js": "^12.5.1",
 		"dotenv": "^8.2.0",
 		"opusscript": "^0.0.8",
+		"prism-media": "^1.2.7",
 		"request": "^2.88.2",
 		"simple-youtube-api": "^5.2.1",
 		"soundcloud-downloader": "^0.2.4",
