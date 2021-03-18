@@ -27,7 +27,36 @@ module.exports.play = async (queue) => {
 		// Manage Files
 		if (!existsSync(song.file)) return;
 		stream = song.file;
-		streamType = 'unknown';
+		
+		// Delete queue on disconnection
+		queue.connection.on('disconnect', () =>
+			client.queue.delete(queue.textChannel.guild.id),
+		);
+
+		// Setup dispatcher
+		const dispatcher = queue.connection
+			.play(stream)
+			.on('finish', () => {
+				setTimeout(() => {
+					const shift = queue.songs.shift();
+					if (queue.loop) queue.songs.push(shift);
+					this.play(queue);
+				}, 200);
+			})
+			.on('error', (err) => {
+				queue.songs.shift();
+				this.play(queue);
+				return queue.textChannel.send(
+					`An unexpected error has occurred.\nPossible type \`${err}\``,
+				);
+			});
+		queue.dispatcher = dispatcher;
+
+		// Set volume and send play message
+		dispatcher.setVolumeLogarithmic(queue.volume / 100);
+		return queue.textChannel.send(
+			`I am now playing \`${song.title}\`! *requested by ${song.req.username}*`,
+		);
 	} else if (song.url.includes('youtube.com')) {
 		// Manage YouTube player
 		stream = await YouTubePlayer(song.url, {
