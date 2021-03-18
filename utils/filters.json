@@ -3,7 +3,7 @@
 	"nightcore": "aresample=48000,asetrate=48000*1.15",
 	"antinightcore": "aresample=52000,asetrate=46000*1.25",
 	"phaser": "aphaser=in_gain=0.6",
-	"fade": "afade=t=in:ss=0:d=10"
+	"fade": "afade=t=in:ss=0:d=10",
 	"subboost": "asubboost",
 	"bassboost": "bass=g=5",
 }
