@@ -111,7 +111,7 @@ module.exports.callback = async ({ client, args, message }) => {
 		);
 	} else if (
 		url.match(
-			/(?:https:\/\/open\.spotify\.com\/|spotify:)(?:.+)?(playlist)[/:]([A-Za-z0-9]+)/,
+			/(?:https:\/\/open\.spotify\.com\/|spotify:)(?:.+)?(playlist|album)[/:]([A-Za-z0-9]+)/,
 		)
 	) {
 		// Manage spotify playlists
