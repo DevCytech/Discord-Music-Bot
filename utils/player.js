@@ -88,7 +88,7 @@ const YouTubePlayer = (url, opts) => {
 };
 
 // Everywhere but YouTube
-/* const ExternalPlayer = (stream, opts) => {
+const ExternalPlayer = (stream, opts) => {
 	if (!stream) {
 		throw new Error('No stream source found.');
 	}
@@ -188,8 +188,7 @@ const YouTubePlayer = (url, opts) => {
 	});
 	return outputStream;
 };
-*/
 
 // Send players
 module.exports.YouTubePlayer = YouTubePlayer;
-// module.exports.ExternalPlayer = ExternalPlayer;
+module.exports.ExternalPlayer = ExternalPlayer;
