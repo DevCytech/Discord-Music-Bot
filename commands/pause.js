@@ -29,14 +29,13 @@ module.exports.callback = async ({ client, message, args }) => {
 	}
 
 	// Pause
-  serverQueue.playing = false;
-  client.queue.set(message.guild.id, serverQueue);
+  	serverQueue.playing = false;
+  	client.queue.set(message.guild.id, serverQueue);
 	serverQueue.dispatcher.pause();
-  return message.channel.send('Music has now been paused!');
+  	return message.channel.send('Music has now been paused!');
 };
 
 module.exports.config = {
-	name: 'volume',
-	aliases: ['vol'],
+	name: 'pause',
 	category: 'music',
 };
