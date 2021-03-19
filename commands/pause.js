@@ -25,7 +25,7 @@ module.exports.callback = async ({ client, message, args }) => {
 
 	// Check to see if argument is a filter
 	if (!serverQueue.dispatcher || !serverQueue.playing) {
-		return message.reply('Music is already playing.');
+		return message.reply('Music is not playing.');
 	}
 
 	// Pause
