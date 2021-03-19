@@ -27,6 +27,7 @@ async function manageQueue(client, message, channel, serverQueue, song) {
 		volume: 50,
 		playing: true,
 		loop: false,
+		filters: [],
 	};
 	client.queue.set(message.guild.id, queueItem);
 
@@ -275,6 +276,14 @@ module.exports.callback = async ({ client, args, message }) => {
 			views: String(songInfo.videoDetails.viewCount).padStart(10, ' '),
 			req: message.author,
 		};
+
+		// Get ready for live streams
+		if (
+			songInfo.player_response &&
+			songInfo.player_response.videoDetails.isLiveContent
+		) {
+			song.isLive = true;
+		}
 	} else if (
 		url.match(
 			/^(https?:\/\/)?(www\.)?(m\.)?(youtube\.com|youtu\.?be)\/.+$/gi,
@@ -311,7 +320,7 @@ module.exports.callback = async ({ client, args, message }) => {
 		// Manage Spotify Links
 		const tempSongInfo = await spotify.getPreview(url);
 		const searchResult = await yts.search(
-			`${tempSongInfo.artist} - ${tempSongInfo.title}`,
+			`${tempSongInfo.artist} - ${tempSongInfo.title} lyrics`,
 		);
 		if (!searchResult.videos.length) {
 			return message.reply('I was unable to find the song');

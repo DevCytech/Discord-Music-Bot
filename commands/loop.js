@@ -7,6 +7,11 @@ module.exports.callback = async ({ client, message }) => {
 		);
 	}
 
+	// Make sure the bot if in a voice channel
+	if (!message.guild.me.voice.channel) {
+		return message.reply('I am not currently playing music!');
+	}
+
 	// Make sure they are in the same voice channel
 	if (channel.id !== message.guild.me.voice.channel.id) {
 		return message.reply(

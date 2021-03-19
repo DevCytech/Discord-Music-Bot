@@ -2,6 +2,11 @@ module.exports.callback = async ({ client, message }) => {
 	// Get the server queue
 	const serverQueue = client.queue.get(message.guild.id);
 
+	// Make sure the bot if in a voice channel
+	if (!message.guild.me.voice.channel) {
+		return message.reply('I am not currently playing music!');
+	}
+
 	// Check queue
 	if (!serverQueue) return message.reply('There is nothing playing.');
 

@@ -32,6 +32,7 @@ async function manageQueue(client, message, channel, video) {
 			volume: 50,
 			playing: true,
 			loop: false,
+			filters: [],
 		};
 		client.queue.set(message.guild.id, queueItem);
 
@@ -127,10 +128,10 @@ module.exports.callback = async ({ client, args, message }) => {
 		message.channel.send(
 			`Searching for songs... This may take a moment. Expected time... ${playlist.tracks.items.length} seconds.`,
 		);
-		
+
 		for (const song of playlist.tracks.items) {
 			const results = await yts.search(
-				`${song.track.artists[0].name} - ${song.track.name}`,
+				`${song.track.artists[0].name} - ${song.track.name} lyrics`,
 			);
 			if (!results || results.length < 1) {
 				continue;
