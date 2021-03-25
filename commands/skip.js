@@ -24,7 +24,6 @@ module.exports.callback = async ({ client, message }) => {
 	if (!serverQueue) return message.reply('There is nothing playing.');
 
 	// Skip song
-	serverQueue.songs.shift();
 	serverQueue.dispatcher.end();
 	message.reply('I have skipped to the next song!');
 };
