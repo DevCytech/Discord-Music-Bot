@@ -6,9 +6,9 @@ const { YouTubePlayer, ExternalPlayer } = require('./player');
 const availableFilters = require('./filters.json');
 const { createReadStream } = require('fs');
 
-// Update is for filter updates
-module.exports.play = async (queue, update) => {
-	// Define filters and seek
+// Play module
+module.exports.play = async (queue, update, refresh) => {
+	// Get settings
 	const seek = update ? queue.dispatcher.streamTime : null;
 	const filters = [];
 	for (const filter of queue.filters) {
@@ -17,8 +17,17 @@ module.exports.play = async (queue, update) => {
 		}
 		filters.push(availableFilters[filter]);
 	}
+	const encoder = filters.length ? ['-af', filters.join(',')] : [];
 
+	// Get song
 	const song = queue.songs[0];
+	if (update && !refresh) {
+		await queue.dispatcher.end();
+		queue.update = true;
+		return;
+	} else if (update && refresh) {
+		queue.update = false;
+	}
 
 	// Make sure there is a song
 	if (!song) {
@@ -55,7 +64,7 @@ module.exports.play = async (queue, update) => {
 				filter: 'audioonly',
 				highWaterMark: 1 << 25,
 				type: streamType,
-				encoderArgs: filters,
+				encoderArgs: encoder,
 				seek: seek / 1000,
 				opusEncoded: true,
 			});
@@ -77,39 +86,43 @@ module.exports.play = async (queue, update) => {
 			),
 			{
 				opusEncoded: true,
-				encoderArgs: filters,
+				encoderArgs: encoder,
 				seek: seek / 1000,
 			},
 		);
 	}
 
-	setTimeout(() => {
-		// Attempting to solve FFmpeg error
-		if (queue.dispatcher) {
-			queue.dispatcher.end();
-		}
-		
-		// Delete queue on disconnection
-		queue.connection.on('disconnect', () =>
-			client.queue.delete(queue.textChannel.guild.id),
-		);
+	// Attempting to solve FFmpeg error
+	if (queue.dispatcher) {
+		await queue.dispatcher.destroy();
+	}
 
+	// Delete queue on disconnection
+	queue.connection.on('disconnect', () =>
+		client.queue.delete(queue.textChannel.guild.id),
+	);
+
+	setTimeout(async () => {
 		// Setup dispatcher
 		const dispatcher = queue.connection
 			.play(stream, { type: streamType })
 			.on('finish', () => {
 				setTimeout(() => {
-					const shift = queue.songs.shift();
-					if (queue.loop) queue.songs.push(shift);
-					this.play(queue);
+					if (queue.update) {
+						this.play(queue, true, true);
+					} else {
+						const shift = queue.songs.shift();
+						if (queue.loop) queue.songs.push(shift);
+						this.play(queue);
+					}
 				}, 200);
 			})
 			.on('error', (err) => {
 				queue.songs.shift();
-				this.play(queue);
-				return queue.textChannel.send(
+				queue.textChannel.send(
 					`An unexpected error has occurred.\nPossible type \`${err}\``,
 				);
+				return this.play(queue);
 			});
 		queue.dispatcher = dispatcher;
 
@@ -118,5 +131,5 @@ module.exports.play = async (queue, update) => {
 		queue.textChannel.send(
 			`I am now playing \`${song.title}\`! *requested by ${song.req.username}*`,
 		);
-	}, 1000)
+	}, 1000);
 };

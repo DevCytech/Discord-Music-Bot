@@ -1,7 +1,7 @@
 {
 	"sway": "apulsator=hz=0.08",
 	"nightcore": "aresample=48000,asetrate=48000*1.15",
-	"antinightcore": "aresample=52000,asetrate=46000*1.25",
+	"antinightcore": "aresample=48000,asetrate=48000*0.8",
 	"phaser": "aphaser=in_gain=0.6",
 	"fade": "afade=t=in:ss=0:d=10",
 	"subboost": "asubboost",

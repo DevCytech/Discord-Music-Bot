@@ -1,6 +1,6 @@
 const ytdl = require('ytdl-core');
 const { opus: Opus, FFmpeg } = require('prism-media');
-const YTDLEvents = [
+const evn = [
 	'info',
 	'progress',
 	'abort',
@@ -14,12 +14,15 @@ const YTDLEvents = [
 
 // Create the YouTube player
 const YouTubePlayer = (url, opts) => {
-	// Define player opts
-	if (!url || typeof url !== 'string') {
-		throw new Error(`input URL must be a string. Received ${typeof url}!`);
+	if (!url) {
+		throw new Error('No input url provided');
+	}
+	if (typeof url !== 'string') {
+		throw new SyntaxError(
+			`input URL must be a string. Received ${typeof url}!`,
+		);
 	}
 
-	// Define player options
 	let FFmpegArgs = [
 		'-analyzeduration',
 		'0',
@@ -35,56 +38,48 @@ const YouTubePlayer = (url, opts) => {
 		'2',
 	];
 
-	// Allow the stream to be moveable
 	if (opts && opts.seek && !isNaN(opts.seek)) {
 		FFmpegArgs.unshift('-ss', opts.seek.toString());
 	}
 
-	// Change the way the stream is encoded, *filters*
 	if (opts && opts.encoderArgs && Array.isArray(opts.encoderArgs)) {
 		FFmpegArgs = FFmpegArgs.concat(opts.encoderArgs);
 	}
 
-	// Create and control the stream
-	const streamDispatcher = new FFmpeg({
+	const dispatcher = new FFmpeg({
 		args: FFmpegArgs,
 	});
 
-	// Deal with the incoming stream
-	const stream = ytdl(url, opts);
-	const output = stream.pipe(streamDispatcher);
-
-	// Manage FFMPEG
+	const originalStream = ytdl(url, opts);
+	const stream = originalStream.pipe(dispatcher);
 	if (opts && !opts.opusEncoded) {
-		for (const event of YTDLEvents) {
-			stream.on(event, (...args) => output.emit(event, ...args));
+		for (const event of evn) {
+			originalStream.on(event, (...args) => stream.emit(event, ...args));
 		}
-		stream.on('error', () => streamDispatcher.destroy());
-		output.on('close', () => streamDispatcher.destroy());
-		return output;
+		originalStream.on('error', () => dispatcher.destroy());
+		stream.on('close', () => dispatcher.destroy());
+		return stream;
 	}
 
-	// Manage OPUS streams below
 	const opus = new Opus.Encoder({
 		rate: 48000,
 		channels: 2,
 		frameSize: 960,
 	});
 
-	// Define output and pipe it out
-	const outputStream = output.pipe(opus);
+	const streamStream = stream.pipe(opus);
 
-	// Setup events
-	for (const event of YTDLEvents) {
-		stream.on(event, (...args) => outputStream.emit(event, ...args));
+	for (const event of evn) {
+		originalStream.on(event, (...args) =>
+			streamStream.emit(event, ...args),
+		);
 	}
 
-	// Manage errors
-	outputStream.on('close', () => {
-		streamDispatcher.destroy();
+	streamStream.on('close', () => {
+		dispatcher.destroy();
 		opus.destroy();
 	});
-	return outputStream;
+	return streamStream;
 };
 
 // Everywhere but YouTube
@@ -93,7 +88,7 @@ const ExternalPlayer = (stream, opts) => {
 		throw new Error('No stream source found.');
 	}
 
-	// Define player options
+	// Define player opts
 	let FFmpegArgs = [];
 	if (typeof stream === 'string') {
 		FFmpegArgs = [
@@ -173,20 +168,20 @@ const ExternalPlayer = (stream, opts) => {
 		frameSize: 960,
 	});
 
-	// Define output and pipe it out
-	const outputStream = streamDispatcher.pipe(opus);
+	// Define stream and pipe it out
+	const streamStream = streamDispatcher.pipe(opus);
 
 	// Setup events
-	for (const event of YTDLEvents) {
-		stream.on(event, (...args) => outputStream.emit(event, ...args));
+	for (const event of evn) {
+		stream.on(event, (...args) => streamStream.emit(event, ...args));
 	}
 
 	// Manage errors
-	outputStream.on('close', () => {
+	streamStream.on('close', () => {
 		streamDispatcher.destroy();
 		opus.destroy();
 	});
-	return outputStream;
+	return streamStream;
 };
 
 // Send players
