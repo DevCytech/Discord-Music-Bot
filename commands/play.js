@@ -25,7 +25,7 @@ async function manageQueue(client, message, channel, serverQueue, song) {
 		dispatcher: null,
 		songs: [song],
 		volume: 50,
-		playing: true,
+		playing: false,
 		loop: false,
 		filters: [],
 	};

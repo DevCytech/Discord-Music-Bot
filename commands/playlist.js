@@ -30,7 +30,7 @@ async function manageQueue(client, message, channel, video) {
 			dispatcher: null,
 			songs: [track],
 			volume: 50,
-			playing: true,
+			playing: false,
 			loop: false,
 			filters: [],
 		};

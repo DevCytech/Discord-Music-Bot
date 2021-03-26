@@ -40,10 +40,7 @@ I have seen many Discord Music Bots on GitHub but most use a fancy package like 
 
 ## In Development Features
 
--   Volume Control _(Complete -- Needs Testing and Adjustment)_
 -   Lyrics
--   Now Playing
--   Pause / Resume _(Complete -- Needs Testing and Adjustment)_
 -   Search _(Search and allow the user to pick from the songs found)_
 
 ## Author

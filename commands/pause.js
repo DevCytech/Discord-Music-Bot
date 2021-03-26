@@ -1,4 +1,4 @@
-module.exports.callback = async ({ client, message, args }) => {
+module.exports.callback = async ({ client, message }) => {
 	// Check voice channel
 	const channel = message.member.voice.channel;
 	if (!channel) {
@@ -23,16 +23,15 @@ module.exports.callback = async ({ client, message, args }) => {
 	const serverQueue = client.queue.get(message.guild.id);
 	if (!serverQueue) return message.reply('There is nothing playing.');
 
-	// Check to see if argument is a filter
-	if (!serverQueue.dispatcher || !serverQueue.playing) {
-		return message.reply('Music is not playing.');
+	// Check if the bot is playing
+	if (!serverQueue.playing) {
+		return message.reply('Music is currently not playing.');
 	}
 
 	// Pause
-  	serverQueue.playing = false;
-  	client.queue.set(message.guild.id, serverQueue);
 	serverQueue.dispatcher.pause();
-  	return message.channel.send('Music has now been paused!');
+	serverQueue.playing = false;
+	return message.reply('I have paused your music.');
 };
 
 module.exports.config = {
