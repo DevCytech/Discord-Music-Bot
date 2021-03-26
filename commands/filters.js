@@ -26,6 +26,11 @@ module.exports.callback = async ({ client, message, args }) => {
 	const serverQueue = client.queue.get(message.guild.id);
 	if (!serverQueue) return message.reply('There is nothing playing.');
 
+	// Check if the bot is playing
+	if (!serverQueue.playing) {
+		return message.reply('Music is currently not playing.');
+	}
+
 	// Check to see if argument is a filter
 	if (!args[0] || !filters[args[0].toLowerCase()]) {
 		return message.reply(

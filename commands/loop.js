@@ -24,8 +24,13 @@ module.exports.callback = async ({ client, message }) => {
 
 	// Check queue and toggle loop
 	if (!serverQueue) return message.reply('There is nothing playing.');
-	serverQueue.loop = !serverQueue.loop;
 
+	// Check if the bot is playing
+	if (!serverQueue.playing) {
+		return message.reply('Music is currently not playing.');
+	}
+
+	serverQueue.loop = !serverQueue.loop;
 	return message.reply(
 		`Loop has been **${serverQueue.loop ? 'enabled' : 'disabled'}**`,
 	);

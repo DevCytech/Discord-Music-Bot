@@ -23,6 +23,11 @@ module.exports.callback = async ({ client, message }) => {
 	const serverQueue = client.queue.get(message.guild.id);
 	if (!serverQueue) return message.reply('There is nothing playing.');
 
+	// Check if the bot is playing
+	if (!serverQueue.playing) {
+		return message.reply('Music is currently not playing.');
+	}
+
 	// Skip song
 	serverQueue.dispatcher.end();
 	message.reply('I have skipped to the next song!');
