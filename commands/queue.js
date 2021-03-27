@@ -22,9 +22,9 @@ module.exports.callback = async ({ client, message }) => {
 	}
 
 	// Create queue message
-	const queue = `**Now Playing**: ${
-		nowPlaying.title
-	} \n**Playing Next**: *(10/${next.length})*\n${playingNext.join('\n')}`;
+	const queue = `**Now Playing**: ${nowPlaying.title} \n**Playing Next**: *(${
+		next.length
+	}/${serverQueue.songs.length - 1})*\n${playingNext.join('\n')}`;
 
 	return message.channel.send(queue);
 };
