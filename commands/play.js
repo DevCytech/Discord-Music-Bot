@@ -4,10 +4,15 @@ const ytdl = require('ytdl-core');
 const request = require('request');
 const { Util } = require('discord.js');
 const spotify = require('spotify-url-info');
-const TempFilesPath = path.join('./temp', '');
 const scdl = require('soundcloud-downloader').default;
-const { existsSync, createWriteStream } = require('fs');
+const { existsSync, createWriteStream, mkdirSync } = require('fs');
 const { callback: playPlaylist } = require('./playlist');
+
+// Temp files storage
+if (!existsSync(path.join('./temp'))) {
+	mkdirSync('./temp');
+}
+const TempFilesPath = path.join('./temp', '');
 
 async function manageQueue(client, message, channel, serverQueue, song) {
 	// Add song to queue if queue is set
