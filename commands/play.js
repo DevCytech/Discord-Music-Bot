@@ -7,6 +7,7 @@ const spotify = require('spotify-url-info');
 const TempFilesPath = path.join('./temp', '');
 const scdl = require('soundcloud-downloader').default;
 const { existsSync, createWriteStream } = require('fs');
+const { callback: playPlaylist } = require('./playlist');
 
 async function manageQueue(client, message, channel, serverQueue, song) {
 	// Add song to queue if queue is set
@@ -39,6 +40,7 @@ async function manageQueue(client, message, channel, serverQueue, song) {
 		return console.error(`Unable to join voice channel: ${err}`);
 	});
 	if (!connection) return await channel.leave();
+	await connection.voice.setSelfDeaf(true);
 
 	// Set queue
 	queueItem.connection = connection;
@@ -290,9 +292,7 @@ module.exports.callback = async ({ client, args, message }) => {
 		) &&
 		/^.*(youtu.be\/|list=)([^#&?]*).*/gi.test(url)
 	) {
-		return message.reply(
-			'Please use `!play-playlist <playlist link>` to play a playlist.',
-		);
+		return playPlaylist({ client, args, message });
 	} else if (url.match(/^https?:\/\/(soundcloud\.com)\/(.*)$/gi)) {
 		// Manage soundcloud links
 		songInfo = await scdl.getInfo(url).catch(console.error);
@@ -342,9 +342,7 @@ module.exports.callback = async ({ client, args, message }) => {
 			/(?:https:\/\/open\.spotify\.com\/|spotify:)(?:.+)?(playlist)[/:]([A-Za-z0-9]+)/,
 		)
 	) {
-		return message.reply(
-			'Please use `!play-playlist <playlist link>` with spotify playlist.',
-		);
+		return playPlaylist({ client, args, message });
 	} else {
 		// Search for songs via YouTube if song was not a link.
 		const searchResult = await yts.search(search).catch(console.error);
