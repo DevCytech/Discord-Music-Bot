@@ -44,6 +44,7 @@ async function manageQueue(client, message, channel, video) {
 			return console.error(`Unable to join voice channel: ${err}`);
 		});
 		if (!connection) return await channel.leave();
+		await connection.voice.setSelfDeaf(true);
 
 		// Set queue
 		queueItem.connection = connection;
