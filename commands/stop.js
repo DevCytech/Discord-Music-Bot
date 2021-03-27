@@ -1,29 +1,5 @@
-module.exports.callback = async ({ client, message }) => {
-	// Check voice channel
-	const channel = message.member.voice.channel;
-	if (!channel) {
-		return message.reply(
-			'Please join a voice channel to use this command.',
-		);
-	}
-
-	// Make sure the bot if in a voice channel
-	if (!message.guild.me.voice.channel) {
-		return message.reply('I am not currently playing music!');
-	}
-
-	// Make sure they are in the same voice channel
-	if (channel.id !== message.guild.me.voice.channel.id) {
-		return message.reply(
-			'Please join the same voice channel as me to use this command.',
-		);
-	}
-
-	// Get the server queue
-	const serverQueue = client.queue.get(message.guild.id);
-
-	// Check queue
-	if (!serverQueue) return message.reply('There is nothing playing.');
+module.exports.callback = async ({ client, message, serverQueue }) => {
+	// Extra serverQueue checks
 	if (!serverQueue.connection) return;
 	if (!serverQueue.connection.dispatcher) return;
 
@@ -47,6 +23,6 @@ module.exports.callback = async ({ client, message }) => {
 
 module.exports.config = {
 	name: 'stop',
-	aliases: [],
+	isPlaying: true,
 	category: 'music',
 };
