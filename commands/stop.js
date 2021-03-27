@@ -40,7 +40,8 @@ module.exports.callback = async ({ client, message }) => {
 
 	// Delete the queue
 	client.queue.delete(message.guild.id);
-	serverQueue.songs = [];
+	const shift = serverQueue.songs.shift();
+	serverQueue.songs = [shift];
 	message.react('✅');
 };
 

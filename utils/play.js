@@ -1,10 +1,9 @@
-const { existsSync } = require('fs');
+const { existsSync, unlink, createReadStream } = require('fs');
 const { SOUNDCLOUD_ID } = process.env;
 const { client } = require('../index');
 const scdl = require('soundcloud-downloader').default;
 const { YouTubePlayer, ExternalPlayer } = require('./player');
 const availableFilters = require('./filters.json');
-const { createReadStream } = require('fs');
 
 // Play module
 module.exports.play = async (queue, update, refresh) => {
@@ -112,7 +111,21 @@ module.exports.play = async (queue, update, refresh) => {
 						this.play(queue, true, true);
 					} else {
 						const shift = queue.songs.shift();
-						if (queue.loop) queue.songs.push(shift);
+						if (queue.loop) {
+							queue.songs.push(shift);
+						} else if (shift.isFile) {
+							unlink(shift.file, function (err) {
+								if (err && err.code == 'ENOENT') {
+									console.error(
+										'Error file could not be found.',
+									);
+								} else if (err) {
+									console.error(
+										'Error occurred while trying to remove file',
+									);
+								}
+							});
+						}
 						this.play(queue);
 					}
 				}, 200);
