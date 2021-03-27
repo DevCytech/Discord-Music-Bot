@@ -1,9 +1,9 @@
-const { existsSync, unlink, createReadStream } = require('fs');
 const { SOUNDCLOUD_ID } = process.env;
 const { client } = require('../index');
+const availableFilters = require('./filters.json');
 const scdl = require('soundcloud-downloader').default;
 const { YouTubePlayer, ExternalPlayer } = require('./player');
-const availableFilters = require('./filters.json');
+const { existsSync, unlink, createReadStream } = require('fs');
 
 // Play module
 module.exports.play = async (queue, update, refresh) => {

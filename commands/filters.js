@@ -1,5 +1,5 @@
-const filters = require('../utils/filters.json');
 const { play } = require('../utils/play');
+const filters = require('../utils/filters.json');
 
 module.exports.callback = async ({ client, message, args }) => {
 	// Check voice channel

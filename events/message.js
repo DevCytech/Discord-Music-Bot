@@ -1,5 +1,5 @@
-const { client } = require('../index');
 const prefix = '!';
+const { client } = require('../index');
 
 client.on('message', (message) => {
 	// Make sure it starts with prefix, it is not a bot, or dm

@@ -5,8 +5,8 @@ const request = require('request');
 const { Util } = require('discord.js');
 const spotify = require('spotify-url-info');
 const scdl = require('soundcloud-downloader').default;
-const { existsSync, createWriteStream, mkdirSync } = require('fs');
 const { callback: playPlaylist } = require('./playlist');
+const { existsSync, createWriteStream, mkdirSync } = require('fs');
 
 // Temp files storage
 if (!existsSync(path.join('./temp'))) {

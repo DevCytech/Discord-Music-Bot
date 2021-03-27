@@ -1,5 +1,3 @@
-const ytdl = require('ytdl-core');
-const { opus: Opus, FFmpeg } = require('prism-media');
 const evn = [
 	'info',
 	'progress',
@@ -11,6 +9,8 @@ const evn = [
 	'retry',
 	'reconnect',
 ];
+const ytdl = require('ytdl-core');
+const { opus: Opus, FFmpeg } = require('prism-media');
 
 // Create the YouTube player
 const YouTubePlayer = (url, opts) => {
