@@ -38,11 +38,6 @@ I have seen many Discord Music Bots on GitHub but most use a fancy package like 
 -   Queue Looping _(Allow the queue to repeat not just the track)_
 -   Previous Track _(Add the previous track to play next)_
 
-## In Development Features
-
--   Lyrics
--   Search _(Search and allow the user to pick from the songs found)_
-
 ## Author
 
 **Discord Music Bot** DevCytech
