@@ -129,8 +129,10 @@ module.exports.play = async (queue, update, refresh) => {
 
 		// Set volume and send play message
 		dispatcher.setVolumeLogarithmic(queue.volume / 100);
-		queue.textChannel.send(
-			`I am now playing \`${song.title}\`! *requested by ${song.req.username}*`,
-		);
+		if (!update) {
+			queue.textChannel.send(
+				`I am now playing \`${song.title}\`! *requested by ${song.req.username}*`,
+			);
+		}
 	}, 1000);
 };
