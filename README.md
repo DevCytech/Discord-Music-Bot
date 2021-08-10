@@ -1,3 +1,6 @@
+# DISCLAIMER
+Since `discord.js` v13 has recently come out I am trying my best to update this to discord.js v13!
+
 # Discord Music Bot
 
 I have seen many Discord Music Bots on GitHub but most use a fancy package like discord-player, andesite, or erela.js and a few others. For this project I wanted to make a Discord Music bot based around the built in Dispatcher in discord.js. This project uses FFMPEG and opusscript with the discord.js dispatcher. This bot currently only plays from YouTube. Future Versions may include more audio sources.
